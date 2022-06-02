@@ -84,23 +84,14 @@ void drawGrid()
 	}
 }
 
-void drawPoint(double x,double y,double z)
-{
-	glBegin(GL_POINTS);
-	glColor3f(1.0,1.0,0.0);
-	glPointSize(5.0f);  // wat
-	glVertex3f(x,y,z);
-	glEnd();
-}
-
 void drawSquare(double a)
 {
     //glColor3f(1.0,0.0,0.0);
 	glBegin(GL_QUADS);{
-		glVertex3f( a, a,0);
-		glVertex3f( a,-a,0);
-		glVertex3f(-a,-a,0);
-		glVertex3f(-a, a,0);
+		glVertex3f( a, a,2);
+		glVertex3f( a,-a,2);
+		glVertex3f(-a,-a,2);
+		glVertex3f(-a, a,2);
 	}glEnd();
 }
 
@@ -157,6 +148,7 @@ void drawCone(double radius,double height,int segments)
     }
 }
 
+
 void drawSphere(double radius,int slices,int stacks)
 {
 	struct PT points[100][100];
@@ -197,104 +189,6 @@ void drawSphere(double radius,int slices,int stacks)
 }
 
 
-void drawSphereQuad(double radius,int slices,int stacks)
-{
-	struct PT points[100][100];
-	int i,j;
-	double h,r;
-	//generate points
-	for(i=0;i<=stacks;i++)
-	{
-		h=radius*sin(((double)i/(double)stacks)*(pi/2));
-		r=radius*cos(((double)i/(double)stacks)*(pi/2));
-		for(j=0;j<=slices/4;j++)
-		{
-			points[i][j].x=r*cos(((double)j/(double)slices)*2*pi);
-			points[i][j].y=r*sin(((double)j/(double)slices)*2*pi);
-			points[i][j].z=h;
-		}
-	}
-	//draw quads using generated points
-	for(i=0;i<stacks;i++)
-	{
-        // glColor3f((double)i/(double)stacks,(double)i/(double)stacks,(double)i/(double)stacks);
-        glColor3f(1,0,0);
-		for(j=0;j<slices/4;j++)
-		{
-			glBegin(GL_QUADS);{
-			    //upper hemisphere
-				glVertex3f(points[i][j].x,points[i][j].y,points[i][j].z);
-				glVertex3f(points[i][j+1].x,points[i][j+1].y,points[i][j+1].z);
-				glVertex3f(points[i+1][j+1].x,points[i+1][j+1].y,points[i+1][j+1].z);
-				glVertex3f(points[i+1][j].x,points[i+1][j].y,points[i+1][j].z);
-                // //lower hemisphere
-                // glVertex3f(points[i][j].x,points[i][j].y,-points[i][j].z);
-				// glVertex3f(points[i][j+1].x,points[i][j+1].y,-points[i][j+1].z);
-				// glVertex3f(points[i+1][j+1].x,points[i+1][j+1].y,-points[i+1][j+1].z);
-				// glVertex3f(points[i+1][j].x,points[i+1][j].y,-points[i+1][j].z);
-			}glEnd();
-		}
-	}
-}
-
-void drawCylinder(double radius,double height,int segments)
-{
-	struct PT points[100];
-	int i;
-	double shade;
-	//generate points
-	for(i=0;i<=segments;i++)
-	{
-		points[i].x=radius*cos(((double)i/(double)segments)*2*pi);
-		points[i].y=radius*sin(((double)i/(double)segments)*2*pi);
-	}
-	//draw quads using generated points
-	for(i=0;i<segments;i++)
-	{
-		//create shading effect
-		if(i<segments/2)shade=2*(double)i/(double)segments;
-		else shade=2*(1.0-(double)i/(double)segments);
-		glColor3f(shade,shade,shade);
-
-		glBegin(GL_QUADS);{
-			glVertex3f(points[i].x,points[i].y,0);
-			glVertex3f(points[i].x,points[i].y,height);
-			glVertex3f(points[i+1].x,points[i+1].y,height);
-			glVertex3f(points[i+1].x,points[i+1].y,0);
-		}glEnd();
-	}
-}
-
-void drawCylinderQuad(double radius,double height,int segments)
-{
-	struct PT points[200];
-	int i;
-	double shade;
-	//generate points
-	for(i=0;i<=segments/4;i++)
-	{
-		points[i].x=radius*cos(((double)i/(double)segments)*2*pi);
-		points[i].y=radius*sin(((double)i/(double)segments)*2*pi);
-	}
-	//draw quads using generated points
-	for(i=0;i<segments/4;i++)
-	{
-		//create shading effect
-		// if(i<segments/2)shade=2*(double)i/(double)segments;
-		// else shade=2*(1.0-(double)i/(double)segments);
-		// glColor3f(shade,shade,shade);
-		glColor3f(0,1,0);
-
-		glBegin(GL_QUADS);{
-			glVertex3f(points[i].x,points[i].y,0);
-			glVertex3f(points[i].x,points[i].y,height);
-			glVertex3f(points[i+1].x,points[i+1].y,height);
-			glVertex3f(points[i+1].x,points[i+1].y,0);
-		}glEnd();
-	}
-}
-
-
 void drawSS()
 {
     glColor3f(1,0,0);
@@ -324,8 +218,8 @@ void drawSS()
     drawSquare(5);
 }
 
-double squareH = 20;
-double sphereR = 40;
+double objH = 20;
+double objR = 0;
 
 bool startRotate = 1;
 
@@ -349,58 +243,58 @@ void drawAll(bool isRot = 0)
 	// right
     glPushMatrix();
 	{
-		glTranslatef(0,squareH+sphereR,0);
+		glTranslatef(0,objH+objR,0);
 		if(isRot) glRotatef(3*angle,0,0,1);
 		glRotatef(90,1,0,0);
-		drawSquare(squareH);
+		drawSquare(objH);
 	}
 	glPopMatrix();
 
 	// left
     glPushMatrix();
 	{
-		glTranslatef(0,-squareH-sphereR,0);
+		glTranslatef(0,-objH-objR,0);
 		if(isRot) glRotatef(3*angle,0,0,1);
 		glRotatef(90,1,0,0);
-		drawSquare(squareH);
+		drawSquare(objH);
 	}
 	glPopMatrix();
 
 	// front
     glPushMatrix();
 	{
-		glTranslatef(squareH+sphereR,0,0);
+		glTranslatef(objH+objR,0,0);
 		if(isRot) glRotatef(3*angle,0,0,1);
 		glRotatef(90,0,1,0);
-		drawSquare(squareH);
+		drawSquare(objH);
 	}
 	glPopMatrix();
 
 	// back
     glPushMatrix();
 	{
-		glTranslatef(-squareH-sphereR,0,0);
+		glTranslatef(-objH-objR,0,0);
 		if(isRot) glRotatef(3*angle,0,0,1);
 		glRotatef(90,0,1,0);
-		drawSquare(squareH);
+		drawSquare(objH);
 	}
 	glPopMatrix();
 
 	// up
 	glPushMatrix();
 	{
-		glTranslatef(0,0,squareH+sphereR);
+		glTranslatef(0,0,objH+objR);
 		if(isRot) glRotatef(3*angle,0,0,1);
-		drawSquare(squareH);
+		drawSquare(objH);
 	}
 	glPopMatrix();
 
 	// down
 	glPushMatrix();
 	{
-		glTranslatef(0,0,-squareH-sphereR);
+		glTranslatef(0,0,-objH-objR);
 		if(isRot)glRotatef(3*angle,0,0,1);
-		drawSquare(squareH);
+		drawSquare(objH);
 	}
 	glPopMatrix();
 
@@ -414,230 +308,73 @@ void drawAll(bool isRot = 0)
 
 	glColor3f(1,0,0);
 
-	drawPoint(squareH,squareH,squareH);
-
 	// z : up , x,y : all combination
 
     // UP 1
     glPushMatrix();
 	{
-		glTranslatef(squareH,squareH,squareH);
-    	drawSphereQuad(sphereR,numSegments,numSegments);
+		glTranslatef(objH,objH,objH);
+    	drawSphere(objR,numSegments,numSegments);
 	}
     glPopMatrix();
 
 	// UP 2
     glPushMatrix();
 	{
-		glTranslatef(squareH,-squareH,squareH);
-		glRotatef(270,0,0,1);
-    	drawSphereQuad(sphereR,numSegments,numSegments);
+		glTranslatef(objH,-objH,objH);
+    	drawSphere(objR,numSegments,numSegments);
 	}
     glPopMatrix();
 
 	// UP 3
     glPushMatrix();
 	{
-		glTranslatef(-squareH,squareH,squareH);
-		glRotatef(90,0,0,1);
-    	drawSphereQuad(sphereR,numSegments,numSegments);
+		glTranslatef(-objH,objH,objH);
+    	drawSphere(objR,numSegments,numSegments);
 	}
     glPopMatrix();
 
 	// UP 4
     glPushMatrix();
 	{
-		glTranslatef(-squareH,-squareH,squareH);
-		glRotatef(180,0,0,1);
-    	drawSphereQuad(sphereR,numSegments,numSegments);
+		glTranslatef(-objH,-objH,objH);
+    	drawSphere(objR,numSegments,numSegments);
 	}
     glPopMatrix();
 
-	// // z : down , x,y : all combination
+	// z : down , x,y : all combination
 
 	// DOWN 1
     glPushMatrix();
 	{
-		glTranslatef(squareH,squareH,-squareH);
-		glRotatef(90,0,1,0);
-    	drawSphereQuad(sphereR,numSegments,numSegments);
+		glTranslatef(objH,objH,-objH);
+    	drawSphere(objR,numSegments,numSegments);
 	}
     glPopMatrix();
 
 	// DOWN 2
     glPushMatrix();
 	{
-		glTranslatef(squareH,-squareH,-squareH);
-		glRotatef(270,0,0,1);
-    	glRotatef(90,0,1,0);
-    	drawSphereQuad(sphereR,numSegments,numSegments);
+		glTranslatef(objH,-objH,-objH);
+    	drawSphere(objR,numSegments,numSegments);
 	}
     glPopMatrix();
 
 	// DOWN 3
     glPushMatrix();
 	{
-		glTranslatef(-squareH,squareH,-squareH);
-		glRotatef(90,0,0,1);
-    	glRotatef(90,0,1,0);
-    	drawSphereQuad(sphereR,numSegments,numSegments);
+		glTranslatef(-objH,objH,-objH);
+    	drawSphere(objR,numSegments,numSegments);
 	}
     glPopMatrix();
 
 	// DOWN 4
     glPushMatrix();
 	{
-		glTranslatef(-squareH,-squareH,-squareH);
-		glRotatef(180,0,0,1);
-    	glRotatef(90,0,1,0);
-    	drawSphereQuad(sphereR,numSegments,numSegments);
+		glTranslatef(-objH,-objH,-objH);
+    	drawSphere(objR,numSegments,numSegments);
 	}
     glPopMatrix();
-
-
-	/*****************
-	 * 
-	 * 
-	 * CYLINDER : 12 part
-	 * 
-	 * 
-	 *****************/
-
-	glColor3f(0,1,0);
-
-	// + + +
-	glPushMatrix();
-	{
-		glTranslatef(squareH,squareH,squareH);
-		glRotatef(90,1,0,0);
-		drawCylinderQuad(sphereR,squareH*2,numSegments);
-
-	}
-    glPopMatrix();
-
-	// + - +
-	glPushMatrix();
-	{
-		glTranslatef(squareH,-squareH,squareH);
-		glRotatef(180,1,0,0);
-		drawCylinderQuad(sphereR,squareH*2,numSegments);
-
-	}
-    glPopMatrix();
-
-	// - + +
-	glPushMatrix();
-	{
-		glTranslatef(-squareH,+squareH,squareH);
-		glRotatef(90,1,0,0);
-		glRotatef(90,0,1,0);
-		drawCylinderQuad(sphereR,squareH*2,numSegments);
-
-	}
-    glPopMatrix();
-
-	// - - +
-	glPushMatrix();
-	{
-		glTranslatef(-squareH,-squareH,squareH);
-		glRotatef(180,1,0,0);
-		glRotatef(90,0,1,0);
-		drawCylinderQuad(sphereR,squareH*2,numSegments);
-
-	}
-    glPopMatrix();
-
-
-	// + + -
-	glPushMatrix();
-	{
-		glTranslatef(squareH,squareH,-squareH);
-		drawCylinderQuad(sphereR,squareH*2,numSegments);
-
-	}
-    glPopMatrix();
-
-	// + - -
-	glPushMatrix();
-	{
-		glTranslatef(squareH,-squareH,-squareH);
-		glRotatef(270,0,0,1);
-		drawCylinderQuad(sphereR,squareH*2,numSegments);
-
-	}
-    glPopMatrix();
-
-	// - + -
-	glPushMatrix();
-	{
-		glTranslatef(-squareH,+squareH,-squareH);
-		glRotatef(180,0,1,0);
-    	glRotatef(90,1,0,0);
-		drawCylinderQuad(sphereR,squareH*2,numSegments);
-	}
-    glPopMatrix();
-
-	// - - -
-	glPushMatrix();
-	{
-		glTranslatef(-squareH,-squareH,-squareH);
-		glRotatef(270,1,0,0);
-    	glRotatef(90,0,1,0);
-		drawCylinderQuad(sphereR,squareH*2,numSegments);
-	}
-    glPopMatrix();
-
-
-	// + + -
-	glPushMatrix();
-	{
-		glTranslatef(squareH,squareH,-squareH);
-		// glRotatef(90,0,1,0);
-    	glRotatef(90,1,0,0);
-    	glRotatef(-90,0,0,1);
-		drawCylinderQuad(sphereR,squareH*2,numSegments);
-	}
-    glPopMatrix();
-
-
-	// - + -
-	glPushMatrix();
-	{
-		glTranslatef(-squareH,+squareH,-squareH);
-		glRotatef(90,0,1,0);
-		drawCylinderQuad(sphereR,squareH*2,numSegments);
-	}
-    glPopMatrix();
-
-	// - - -
-	glPushMatrix();
-	{
-		glTranslatef(-squareH,-squareH,-squareH);
-		glRotatef(180,0,0,1);
-		drawCylinderQuad(sphereR,squareH*2,numSegments);
-	}
-    glPopMatrix();
-
-	// - + -
-	glPushMatrix();
-	{
-		glTranslatef(-squareH,+squareH,-squareH);
-		glRotatef(90,0,0,1);
-		drawCylinderQuad(sphereR,squareH*2,numSegments);
-	}
-    glPopMatrix();
-
-	// - + +
-	glPushMatrix();
-	{
-		glTranslatef(-squareH,+squareH,squareH);
-		glRotatef(270,0,1,0);
-    	glRotatef(90,1,0,0);
-		drawCylinderQuad(sphereR,squareH*2,numSegments);
-
-	}
-    glPopMatrix();
-	
 	
 }
 
@@ -719,17 +456,17 @@ void specialKeyListener(int key, int x,int y){
 			break;
 
 		case GLUT_KEY_HOME:
-			if(squareH > 0)
+			if(objH > 0)
 			{
-				squareH -= 2;
-				sphereR += 1;
+				objH -= 2;
+				objR += 1;
 			}
 			break;
 		case GLUT_KEY_END:
-			if(sphereR > 0)
+			if(objR > 0)
 			{
-				squareH += 2;
-				sphereR -= 1;
+				objH += 2;
+				objR -= 1;
 			}
 			break;
 
@@ -815,10 +552,8 @@ void display(){
     // drawCone(20,50,24);
 
 	// glColor3f(255,0,0);
-	// glTranslatef(0,20,0);
-	// drawSphere(20,24,20);
+	// drawSphere(30,24,20);
 	drawAll();
-	// drawCylinderQuad(20,50,24);
 
 
 
@@ -829,7 +564,7 @@ void display(){
 
 
 void animate(){
-	angle+=0.02;
+	angle+=0.005;
 	//codes for any changes in Models, Camera
 	glutPostRedisplay();
 }
