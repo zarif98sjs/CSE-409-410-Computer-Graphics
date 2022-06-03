@@ -11,7 +11,10 @@ double cameraHeight;
 double cameraAngle;
 int drawgrid;
 int drawaxes;
-double angle;
+double angleTurn;
+double angleFwd;
+
+double wheelH = 5, wheelR = 15;
 
 struct PT
 {
@@ -29,18 +32,9 @@ struct PT
 	PT operator *(PT b)  {return PT(y*b.z-z*b.y, z*b.x-x*b.z, x*b.y-y*b.x);}
 };
 
-// position of camera
-PT pos(200,0,0);
+// position of wheel
+PT pos(0,0,0);
 
-// up, right and look direction
-PT up(0,0,1);
-PT right(0,1,0);
-PT look(-1,0,0);
-
-double ROT_ANG = pi/180;
-int numSegments;
-
-// draw axes
 void drawAxes()
 {
 	if(drawaxes==1)
@@ -59,7 +53,7 @@ void drawAxes()
 	}
 }
 
-// draws grid
+
 void drawGrid()
 {
 	int i;
@@ -69,8 +63,8 @@ void drawGrid()
 		glBegin(GL_LINES);{
 			for(i=-8;i<=8;i++){
 
-				if(i==0)
-					continue;	//SKIP the MAIN axes
+				// if(i==0)
+				// 	continue;	//SKIP the MAIN axes
 
 				//lines parallel to Y-axis
 				glVertex3f(i*10, -90, 0);
@@ -84,15 +78,6 @@ void drawGrid()
 	}
 }
 
-void drawPoint(double x,double y,double z)
-{
-	glBegin(GL_POINTS);
-	glColor3f(1.0,1.0,0.0);
-	glPointSize(5.0f);  // wat
-	glVertex3f(x,y,z);
-	glEnd();
-}
-
 void drawSquare(double a)
 {
     //glColor3f(1.0,0.0,0.0);
@@ -101,6 +86,17 @@ void drawSquare(double a)
 		glVertex3f( a,-a,0);
 		glVertex3f(-a,-a,0);
 		glVertex3f(-a, a,0);
+	}glEnd();
+}
+
+void drawRectangle(double w,double h)
+{
+    //glColor3f(1.0,0.0,0.0);
+	glBegin(GL_QUADS);{
+		glVertex3f( w, h,0);
+		glVertex3f( w,-h,0);
+		glVertex3f(-w,-h,0);
+		glVertex3f(-w, h,0);
 	}glEnd();
 }
 
@@ -157,6 +153,7 @@ void drawCone(double radius,double height,int segments)
     }
 }
 
+
 void drawSphere(double radius,int slices,int stacks)
 {
 	struct PT points[100][100];
@@ -196,52 +193,15 @@ void drawSphere(double radius,int slices,int stacks)
 	}
 }
 
-
-void drawSphereQuad(double radius,int slices,int stacks)
-{
-	struct PT points[100][100];
-	int i,j;
-	double h,r;
-	//generate points
-	for(i=0;i<=stacks;i++)
-	{
-		h=radius*sin(((double)i/(double)stacks)*(pi/2));
-		r=radius*cos(((double)i/(double)stacks)*(pi/2));
-		for(j=0;j<=slices/4;j++)
-		{
-			points[i][j].x=r*cos(((double)j/(double)slices)*2*pi);
-			points[i][j].y=r*sin(((double)j/(double)slices)*2*pi);
-			points[i][j].z=h;
-		}
-	}
-	//draw quads using generated points
-	for(i=0;i<stacks;i++)
-	{
-        // glColor3f((double)i/(double)stacks,(double)i/(double)stacks,(double)i/(double)stacks);
-        glColor3f(1,0,0);
-		for(j=0;j<slices/4;j++)
-		{
-			glBegin(GL_QUADS);{
-			    //upper hemisphere
-				glVertex3f(points[i][j].x,points[i][j].y,points[i][j].z);
-				glVertex3f(points[i][j+1].x,points[i][j+1].y,points[i][j+1].z);
-				glVertex3f(points[i+1][j+1].x,points[i+1][j+1].y,points[i+1][j+1].z);
-				glVertex3f(points[i+1][j].x,points[i+1][j].y,points[i+1][j].z);
-                // //lower hemisphere
-                // glVertex3f(points[i][j].x,points[i][j].y,-points[i][j].z);
-				// glVertex3f(points[i][j+1].x,points[i][j+1].y,-points[i][j+1].z);
-				// glVertex3f(points[i+1][j+1].x,points[i+1][j+1].y,-points[i+1][j+1].z);
-				// glVertex3f(points[i+1][j].x,points[i+1][j].y,-points[i+1][j].z);
-			}glEnd();
-		}
-	}
-}
-
 void drawCylinder(double radius,double height,int segments)
 {
 	struct PT points[100];
 	int i;
 	double shade;
+
+	// glRotatef(angle,0,0,1);
+	
+
 	//generate points
 	for(i=0;i<=segments;i++)
 	{
@@ -265,423 +225,62 @@ void drawCylinder(double radius,double height,int segments)
 	}
 }
 
-void drawCylinderQuad(double radius,double height,int segments)
-{
-	struct PT points[200];
-	int i;
-	double shade;
-	//generate points
-	for(i=0;i<=segments/4;i++)
-	{
-		points[i].x=radius*cos(((double)i/(double)segments)*2*pi);
-		points[i].y=radius*sin(((double)i/(double)segments)*2*pi);
-	}
-	//draw quads using generated points
-	for(i=0;i<segments/4;i++)
-	{
-		//create shading effect
-		// if(i<segments/2)shade=2*(double)i/(double)segments;
-		// else shade=2*(1.0-(double)i/(double)segments);
-		// glColor3f(shade,shade,shade);
-		glColor3f(0,1,0);
-
-		glBegin(GL_QUADS);{
-			glVertex3f(points[i].x,points[i].y,0);
-			glVertex3f(points[i].x,points[i].y,height);
-			glVertex3f(points[i+1].x,points[i+1].y,height);
-			glVertex3f(points[i+1].x,points[i+1].y,0);
-		}glEnd();
-	}
-}
-
 
 void drawSS()
 {
     glColor3f(1,0,0);
     drawSquare(20);
 
-	
-    glRotatef(angle,0,0,1);
+    glRotatef(angleTurn,0,0,1);
     glTranslatef(110,0,0);
-    glRotatef(2*angle,0,0,1);
+    glRotatef(2*angleTurn,0,0,1);
     glColor3f(0,1,0);
     drawSquare(15);
 
     glPushMatrix();
     {
-        glRotatef(angle,0,0,1);
+        glRotatef(angleTurn,0,0,1);
         glTranslatef(60,0,0);
-        glRotatef(2*angle,0,0,1);
+        glRotatef(2*angleTurn,0,0,1);
         glColor3f(0,0,1);
         drawSquare(10);
     }
     glPopMatrix();
 
-    glRotatef(3*angle,0,0,1);
+    glRotatef(3*angleTurn,0,0,1);
     glTranslatef(40,0,0);
-    glRotatef(4*angle,0,0,1);
+    glRotatef(4*angleTurn,0,0,1);
     glColor3f(1,1,0);
     drawSquare(5);
 }
 
-double squareH = 20;
-double sphereR = 40;
-
-bool startRotate = 1;
-
-void drawAll(bool isRot = 0)
-{
-	/*****************
-	 * 
-	 * 
-	 * CUBE : 6 part
-	 * 
-	 * 
-	 *****************/
-
-	// WHITE square
-	glColor3f(1,1,1);
-
-	// draw the square one by one
-
-	if(startRotate) glRotatef(3*angle,0,0,1);
-
-	// right
-    glPushMatrix();
-	{
-		glTranslatef(0,squareH+sphereR,0);
-		if(isRot) glRotatef(3*angle,0,0,1);
-		glRotatef(90,1,0,0);
-		drawSquare(squareH);
-	}
-	glPopMatrix();
-
-	// left
-    glPushMatrix();
-	{
-		glTranslatef(0,-squareH-sphereR,0);
-		if(isRot) glRotatef(3*angle,0,0,1);
-		glRotatef(90,1,0,0);
-		drawSquare(squareH);
-	}
-	glPopMatrix();
-
-	// front
-    glPushMatrix();
-	{
-		glTranslatef(squareH+sphereR,0,0);
-		if(isRot) glRotatef(3*angle,0,0,1);
-		glRotatef(90,0,1,0);
-		drawSquare(squareH);
-	}
-	glPopMatrix();
-
-	// back
-    glPushMatrix();
-	{
-		glTranslatef(-squareH-sphereR,0,0);
-		if(isRot) glRotatef(3*angle,0,0,1);
-		glRotatef(90,0,1,0);
-		drawSquare(squareH);
-	}
-	glPopMatrix();
-
-	// up
-	glPushMatrix();
-	{
-		glTranslatef(0,0,squareH+sphereR);
-		if(isRot) glRotatef(3*angle,0,0,1);
-		drawSquare(squareH);
-	}
-	glPopMatrix();
-
-	// down
-	glPushMatrix();
-	{
-		glTranslatef(0,0,-squareH-sphereR);
-		if(isRot)glRotatef(3*angle,0,0,1);
-		drawSquare(squareH);
-	}
-	glPopMatrix();
-
-	/*****************
-	 * 
-	 * 
-	 * SPHERE : 8 part
-	 * 
-	 * 
-	 *****************/
-
-	glColor3f(1,0,0);
-
-	drawPoint(squareH,squareH,squareH);
-
-	// z : up , x,y : all combination
-
-    // UP 1
-    glPushMatrix();
-	{
-		glTranslatef(squareH,squareH,squareH);
-    	drawSphereQuad(sphereR,numSegments,numSegments);
-	}
-    glPopMatrix();
-
-	// UP 2
-    glPushMatrix();
-	{
-		glTranslatef(squareH,-squareH,squareH);
-		glRotatef(270,0,0,1);
-    	drawSphereQuad(sphereR,numSegments,numSegments);
-	}
-    glPopMatrix();
-
-	// UP 3
-    glPushMatrix();
-	{
-		glTranslatef(-squareH,squareH,squareH);
-		glRotatef(90,0,0,1);
-    	drawSphereQuad(sphereR,numSegments,numSegments);
-	}
-    glPopMatrix();
-
-	// UP 4
-    glPushMatrix();
-	{
-		glTranslatef(-squareH,-squareH,squareH);
-		glRotatef(180,0,0,1);
-    	drawSphereQuad(sphereR,numSegments,numSegments);
-	}
-    glPopMatrix();
-
-	// // z : down , x,y : all combination
-
-	// DOWN 1
-    glPushMatrix();
-	{
-		glTranslatef(squareH,squareH,-squareH);
-		glRotatef(90,0,1,0);
-    	drawSphereQuad(sphereR,numSegments,numSegments);
-	}
-    glPopMatrix();
-
-	// DOWN 2
-    glPushMatrix();
-	{
-		glTranslatef(squareH,-squareH,-squareH);
-		glRotatef(270,0,0,1);
-    	glRotatef(90,0,1,0);
-    	drawSphereQuad(sphereR,numSegments,numSegments);
-	}
-    glPopMatrix();
-
-	// DOWN 3
-    glPushMatrix();
-	{
-		glTranslatef(-squareH,squareH,-squareH);
-		glRotatef(90,0,0,1);
-    	glRotatef(90,0,1,0);
-    	drawSphereQuad(sphereR,numSegments,numSegments);
-	}
-    glPopMatrix();
-
-	// DOWN 4
-    glPushMatrix();
-	{
-		glTranslatef(-squareH,-squareH,-squareH);
-		glRotatef(180,0,0,1);
-    	glRotatef(90,0,1,0);
-    	drawSphereQuad(sphereR,numSegments,numSegments);
-	}
-    glPopMatrix();
-
-
-	/*****************
-	 * 
-	 * 
-	 * CYLINDER : 12 part
-	 * 
-	 * 
-	 *****************/
-
-	glColor3f(0,1,0);
-
-	// + + +
-	glPushMatrix();
-	{
-		glTranslatef(squareH,squareH,squareH);
-		glRotatef(90,1,0,0);
-		drawCylinderQuad(sphereR,squareH*2,numSegments);
-
-	}
-    glPopMatrix();
-
-	// + - +
-	glPushMatrix();
-	{
-		glTranslatef(squareH,-squareH,squareH);
-		glRotatef(180,1,0,0);
-		drawCylinderQuad(sphereR,squareH*2,numSegments);
-
-	}
-    glPopMatrix();
-
-	// - + +
-	glPushMatrix();
-	{
-		glTranslatef(-squareH,+squareH,squareH);
-		glRotatef(90,1,0,0);
-		glRotatef(90,0,1,0);
-		drawCylinderQuad(sphereR,squareH*2,numSegments);
-
-	}
-    glPopMatrix();
-
-	// - - +
-	glPushMatrix();
-	{
-		glTranslatef(-squareH,-squareH,squareH);
-		glRotatef(180,1,0,0);
-		glRotatef(90,0,1,0);
-		drawCylinderQuad(sphereR,squareH*2,numSegments);
-
-	}
-    glPopMatrix();
-
-
-	// + + -
-	glPushMatrix();
-	{
-		glTranslatef(squareH,squareH,-squareH);
-		drawCylinderQuad(sphereR,squareH*2,numSegments);
-
-	}
-    glPopMatrix();
-
-	// + - -
-	glPushMatrix();
-	{
-		glTranslatef(squareH,-squareH,-squareH);
-		glRotatef(270,0,0,1);
-		drawCylinderQuad(sphereR,squareH*2,numSegments);
-
-	}
-    glPopMatrix();
-
-	// - + -
-	glPushMatrix();
-	{
-		glTranslatef(-squareH,+squareH,-squareH);
-		glRotatef(180,0,1,0);
-    	glRotatef(90,1,0,0);
-		drawCylinderQuad(sphereR,squareH*2,numSegments);
-	}
-    glPopMatrix();
-
-	// - - -
-	glPushMatrix();
-	{
-		glTranslatef(-squareH,-squareH,-squareH);
-		glRotatef(270,1,0,0);
-    	glRotatef(90,0,1,0);
-		drawCylinderQuad(sphereR,squareH*2,numSegments);
-	}
-    glPopMatrix();
-
-
-	// + + -
-	glPushMatrix();
-	{
-		glTranslatef(squareH,squareH,-squareH);
-		// glRotatef(90,0,1,0);
-    	glRotatef(90,1,0,0);
-    	glRotatef(-90,0,0,1);
-		drawCylinderQuad(sphereR,squareH*2,numSegments);
-	}
-    glPopMatrix();
-
-
-	// - + -
-	glPushMatrix();
-	{
-		glTranslatef(-squareH,+squareH,-squareH);
-		glRotatef(90,0,1,0);
-		drawCylinderQuad(sphereR,squareH*2,numSegments);
-	}
-    glPopMatrix();
-
-	// - - -
-	glPushMatrix();
-	{
-		glTranslatef(-squareH,-squareH,-squareH);
-		glRotatef(180,0,0,1);
-		drawCylinderQuad(sphereR,squareH*2,numSegments);
-	}
-    glPopMatrix();
-
-	// - + -
-	glPushMatrix();
-	{
-		glTranslatef(-squareH,+squareH,-squareH);
-		glRotatef(90,0,0,1);
-		drawCylinderQuad(sphereR,squareH*2,numSegments);
-	}
-    glPopMatrix();
-
-	// - + +
-	glPushMatrix();
-	{
-		glTranslatef(-squareH,+squareH,squareH);
-		glRotatef(270,0,1,0);
-    	glRotatef(90,1,0,0);
-		drawCylinderQuad(sphereR,squareH*2,numSegments);
-
-	}
-    glPopMatrix();
-	
-	
-}
-
-void rotate3D(PT &vec,PT &axis,double ang)
-{
-	// vec = vec*cos(ang)+(vec*axis)*sin(ang);
-	vec = vec*cos(ang)+(axis*vec)*sin(ang);
-}
+double distanceTrav;
 
 void keyboardListener(unsigned char key, int x,int y){
 	switch(key){
 
 		case '1':
-			// rotate LEFT 
-			rotate3D(right,up,ROT_ANG);
-			rotate3D(look,up,ROT_ANG);
+			drawgrid=1-drawgrid;
 			break;
-		case '2':
-			// rotate right
-			rotate3D(right,up,-ROT_ANG);
-			rotate3D(look,up,-ROT_ANG);
-			break;
-		case '3':
-			// rotate UP
-			rotate3D(up,right,ROT_ANG);
-			rotate3D(look,right,ROT_ANG);
-			break;
-		case '4':
-			// rotate DOWN
-			rotate3D(up,right,-ROT_ANG);
-			rotate3D(look,right,-ROT_ANG);
-			break;
-		case '5':
-			// tilt CLKWISE
-			rotate3D(right,look,ROT_ANG);
-			rotate3D(up,look,ROT_ANG);
-			break;
-		case '6':
-			// tilt COUNTER CLKWISE
-			rotate3D(right,look,-ROT_ANG);
-			rotate3D(up,look,-ROT_ANG);
+
+		case 'w':
+			// pos.x -= 3;
+			angleFwd += 2;
+			distanceTrav = 2 * pi * wheelR * (double)(2)/(double)(360);
+			pos.x -= cos(angleTurn*pi/(double)180) * distanceTrav;
+			pos.y -= sin(angleTurn*pi/(double)180) * distanceTrav;
 			break;
 		case 's':
-			startRotate = 1 - startRotate;
+			angleFwd -= 2;
+			distanceTrav = 2 * pi * wheelR * (double)(-2)/(double)(360);
+			pos.x -= cos(angleTurn*pi/(double)180) * distanceTrav;
+			pos.y -= sin(angleTurn*pi/(double)180) * distanceTrav;
+			break;
+		case 'a':
+			angleTurn += 1.5;
+			break;
+		case 'd':
+			angleTurn -= 1.5;
 		default:
 			break;
 	}
@@ -691,46 +290,30 @@ void keyboardListener(unsigned char key, int x,int y){
 void specialKeyListener(int key, int x,int y){
 	switch(key){
 		case GLUT_KEY_DOWN:		//down arrow key
-			// cameraHeight -= 3.0;
-			pos.x += 3.0;
+			cameraHeight -= 3.0;
 			break;
 		case GLUT_KEY_UP:		// up arrow key
-			// cameraHeight += 3.0;
-			pos.x -= 3.0;
+			cameraHeight += 3.0;
 			break;
 
 		case GLUT_KEY_RIGHT:
-			// cameraAngle += 0.03;
-			pos.y += 3.0;
+			cameraAngle += 0.03;
 			break;
 		case GLUT_KEY_LEFT:
-			// cameraAngle -= 0.03;
-			pos.y -= 3.0;
+			cameraAngle -= 0.03;
 			break;
 
 		case GLUT_KEY_PAGE_UP:
-			pos.z += 3.0;
 			break;
 		case GLUT_KEY_PAGE_DOWN:
-			pos.z -= 3.0;
 			break;
 
 		case GLUT_KEY_INSERT:
 			break;
 
 		case GLUT_KEY_HOME:
-			if(squareH > 0)
-			{
-				squareH -= 2;
-				sphereR += 1;
-			}
 			break;
 		case GLUT_KEY_END:
-			if(sphereR > 0)
-			{
-				squareH += 2;
-				sphereR -= 1;
-			}
 			break;
 
 		default:
@@ -762,6 +345,8 @@ void mouseListener(int button, int state, int x, int y){	//x, y is the x-y of th
 
 
 
+
+
 void display(){
 
 	//clear the display
@@ -784,13 +369,9 @@ void display(){
 	//3. Which direction is the camera's UP direction?
 
 	//gluLookAt(100,100,100,	0,0,0,	0,0,1);
-	//gluLookAt(200*cos(cameraAngle), 200*sin(cameraAngle), cameraHeight,		0,0,0,		0,0,1);
+	double cameraDistance = 100;
+	gluLookAt(cameraDistance*cos(cameraAngle), cameraDistance*sin(cameraAngle), cameraHeight,		0,0,0,		0,0,1);
 	// gluLookAt(0,0,200,	0,0,0,	0,1,0);
-	// gluLookAt(0,100,0,	0,0,0,	0,0,1);
-
-	gluLookAt(pos.x, pos.y, pos.z, 
-			pos.x + look.x, pos.y + look.y, pos.z + look.z, 
-			up.x, up.y, up.z);
 
 
 	//again select MODEL-VIEW
@@ -810,15 +391,41 @@ void display(){
 
     // drawSS();
 
-    // drawCircle(30,24);
+    //drawCircle(30,24);
 
     // drawCone(20,50,24);
 
-	// glColor3f(255,0,0);
-	// glTranslatef(0,20,0);
-	// drawSphere(20,24,20);
-	drawAll();
-	// drawCylinderQuad(20,50,24);
+	//drawSphere(30,24,20);
+
+	glTranslatef(0,0,wheelR);
+	glTranslatef(pos.x,pos.y,pos.z);
+	glRotatef(90,1,0,0);
+
+	glRotatef(angleTurn,0,1,0);	
+	glRotatef(angleFwd,0,0,1);
+
+	glPushMatrix();
+	{
+
+		
+		drawCylinder(wheelR,wheelH/2,40);
+		glTranslatef(0,0,-wheelH/2);
+		drawCylinder(wheelR,wheelH/2,40);
+		glTranslatef(0,0,wheelH/2);
+		// rectangles inside wheel
+		glColor3f(1,1,1);
+		// // drawSquare(30);
+		// glTranslatef(0,0,5);
+		glRotatef(90,0,1,0);
+		drawRectangle(wheelH/2,wheelR);
+
+		glRotatef(90,1,0,0);
+		drawRectangle(wheelH/2,wheelR);
+	}
+	glPopMatrix();
+
+	
+	// glTranslatef(pos.x,pos.y,pos.z);
 
 
 
@@ -829,7 +436,7 @@ void display(){
 
 
 void animate(){
-	angle+=0.02;
+	// angle+=0.05;
 	//codes for any changes in Models, Camera
 	glutPostRedisplay();
 }
@@ -837,11 +444,11 @@ void animate(){
 void init(){
 	//codes for initialization
 	drawgrid=1;
-	drawaxes=1;
-	cameraHeight=150.0;
+	drawaxes=0;
+	cameraHeight=100.0;
 	cameraAngle=1.0;
-	angle=(pi)/180;
-	numSegments = 36;
+	angleTurn=0;
+	angleFwd=0;
 
 	//clear the screen
 	glClearColor(0,0,0,0);
@@ -856,7 +463,7 @@ void init(){
 	glLoadIdentity();
 
 	//give PERSPECTIVE parameters
-	gluPerspective(80,	1,	1,	1000.0);
+	gluPerspective(60,	1,	1,	1000.0);
 	//field of view in the Y (vertically)
 	//aspect ratio that determines the field of view in the X direction (horizontally)
 	//near distance
