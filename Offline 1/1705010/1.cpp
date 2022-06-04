@@ -327,7 +327,7 @@ void drawSS()
 double squareH = 20;
 double sphereR = 40;
 
-bool startRotate = 0;
+bool startRotate = 1;
 
 void drawAll(bool isRot = 0)
 {
