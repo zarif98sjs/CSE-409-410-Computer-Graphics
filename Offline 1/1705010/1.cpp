@@ -327,7 +327,7 @@ void drawSS()
 double squareH = 20;
 double sphereR = 40;
 
-bool startRotate = 1;
+bool startRotate = 0;
 
 void drawAll(bool isRot = 0)
 {
@@ -785,8 +785,8 @@ void display(){
 
 	//gluLookAt(100,100,100,	0,0,0,	0,0,1);
 	//gluLookAt(200*cos(cameraAngle), 200*sin(cameraAngle), cameraHeight,		0,0,0,		0,0,1);
-	// gluLookAt(0,0,200,	0,0,0,	0,1,0);
-	// gluLookAt(0,100,0,	0,0,0,	0,0,1);
+	//  gluLookAt(0,0,200,	0,0,0,	0,1,0);
+	//gluLookAt(0,100,0,	0,0,0,	0,0,1);
 
 	gluLookAt(pos.x, pos.y, pos.z, 
 			pos.x + look.x, pos.y + look.y, pos.z + look.z, 
