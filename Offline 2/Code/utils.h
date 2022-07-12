@@ -73,6 +73,33 @@ struct PT
 };
 
 /**
+ * @brief Triangle
+ * 
+ */
+
+struct Triangle{
+    PT points[3];
+    int rgb[3];
+
+    Triangle()
+    {
+        rgb[0] = rand()%255+1;
+        rgb[1] = rand()%255+1;
+        rgb[2] = rand()%255+1;
+    } 
+
+    Triangle(PT p1, PT p2, PT p3)
+    {
+        points[0] = p1;
+        points[1] = p2;
+        points[2] = p3;
+        rgb[0] = rand()%255+1;
+        rgb[1] = rand()%255+1;
+        rgb[2] = rand()%255+1;
+    }
+};
+
+/**
  * @brief Matrix
  * 
  */
@@ -201,11 +228,11 @@ struct Matrix{
     void createView(PT eye,PT look,PT up)
     {
         createIdentity();
-        PT z = (eye-look);
+        PT z = (look-eye);
         z.normalize();
-        PT x = (up^z);
+        PT x = (z^up);
         x.normalize();
-        PT y = (z^x);
+        PT y = (x^z);
         y.normalize();
 
         ara[0][0] = x.x;
