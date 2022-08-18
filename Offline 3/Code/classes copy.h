@@ -238,90 +238,88 @@ public:
                 }
             }
 
-            for(int i = 0; i < spotlights.size(); i++){
-                PT lightPosition = spotlights[i]->pointLight.pos;
-                PT lightDirection = intersectionPoint - lightPosition;
-                lightDirection.normalize();
+            // for(int i = 0; i < spotlights.size(); i++){
+            //     PT lightPosition = spotlights[i]->pointLight.pos;
+            //     PT lightDirection = intersectionPoint - lightPosition;
+            //     lightDirection.normalize();
 
-                double dot = lightDirection*spotlights[i]->dir;
-                double angle = acos(dot/(lightDirection.length()*spotlights[i]->dir.length())) * (180.0/pi);
-
-                if(angle<spotlights[i]->cutoffAngle){
-                    Ray lightRay = Ray(lightPosition, lightDirection);
-                    Ray normal = getNormal(intersectionPoint,lightRay);
+            //     double dot = lightDirection*spotlights[i]->dir;
+            //     if(dot < cos(spotlights[i]->cutoffAngle)){
+            //         Ray lightRay = Ray(lightPosition, lightDirection);
+            //         Ray normal = getNormal(intersectionPoint,lightRay);
                     
-                    Ray reflection = Ray(intersectionPoint, lightRay.dir - normal.dir*2*(lightRay.dir*normal.dir));
+            //         Ray reflection = Ray(intersectionPoint, lightRay.dir - normal.dir*2*(lightRay.dir*normal.dir));
                     
-                    double t2 = (intersectionPoint - lightPosition).length();
-                    if(t2 < 1e-5) continue;
+            //         double t2 = (intersectionPoint - lightPosition).length();
+            //         if(t2 < 1e-5) continue;
                     
-                    bool obscured = false;
+            //         bool obscured = false;
                     
-                    for(Object *obj : objects){
-                        double t3 = obj->intersectHelper(lightRay, color, 0);
-                        if(t3 > 0 && t3 + 1e-5 < t2){
-                            obscured = true;
-                            break;
-                        }
-                    }
+            //         for(Object *obj : objects){
+            //             double t3 = obj->intersectHelper(lightRay, color, 0);
+            //             if(t3 > 0 && t3 + 1e-5 < t2){
+            //                 obscured = true;
+            //                 break;
+            //             }
+            //         }
                     
-                    if(!obscured){
+            //         if(!obscured){
                         
-                        double phong = max(0.0,-ray.dir*reflection.dir);
-                        double val = max(0.0, -lightRay.dir*normal.dir);
+            //             double phong = max(0.0,-ray.dir*reflection.dir);
+            //             double val = max(0.0, -lightRay.dir*normal.dir);
                         
-                        color.r += spotlights[i]->pointLight.color.r * coefficients[1] * val * colorAtIntersection.r;
-                        color.r += spotlights[i]->pointLight.color.r * coefficients[2] * pow(phong,shine) * colorAtIntersection.r;
+            //             color.r += spotlights[i]->pointLight.color.r * coefficients[1] * val * colorAtIntersection.r;
+            //             color.r += spotlights[i]->pointLight.color.r * coefficients[2] * pow(phong,shine) * colorAtIntersection.r;
                         
-                        color.g += spotlights[i]->pointLight.color.g * coefficients[1] * val * colorAtIntersection.g;
-                        color.g += spotlights[i]->pointLight.color.g * coefficients[2] * pow(phong,shine) * colorAtIntersection.g;
+            //             color.g += spotlights[i]->pointLight.color.g * coefficients[1] * val * colorAtIntersection.g;
+            //             color.g += spotlights[i]->pointLight.color.g * coefficients[2] * pow(phong,shine) * colorAtIntersection.g;
                         
-                        color.b += spotlights[i]->pointLight.color.b * coefficients[1] * val * colorAtIntersection.b;
-                        color.b += spotlights[i]->pointLight.color.b * coefficients[2] * pow(phong,shine) * colorAtIntersection.b;
+            //             color.b += spotlights[i]->pointLight.color.b * coefficients[1] * val * colorAtIntersection.b;
+            //             color.b += spotlights[i]->pointLight.color.b * coefficients[2] * pow(phong,shine) * colorAtIntersection.b;
                         
-                    }
-                }
-            }
+            //         }
+            //     }
+            // }
 
-            if(level < recursionLevel){
-                // if(level > 1) cout << "Recursion level " << level << endl;
-                Ray normal = getNormal(intersectionPoint,ray);
-                Ray reflectionRay = Ray(intersectionPoint, ray.dir - normal.dir*2*(ray.dir*normal.dir));
-                reflectionRay.origin = reflectionRay.origin + reflectionRay.dir*1e-5;
+            // if(level < recursionLevel){
+            //     // if(level > 1) cout << "Recursion level " << level << endl;
+            //     Ray normal = getNormal(intersectionPoint,ray);
+            //     Ray reflectionRay = Ray(intersectionPoint, ray.dir - normal.dir*2*(ray.dir*normal.dir));
+            //     reflectionRay.origin = reflectionRay.origin + reflectionRay.dir*1e-5;
 
-                int nearestObjectIndex = -1;
-                double t = -1,tMin = 1e9;
+            //     int nearestObjectIndex = -1;
+            //     double t = -1,tMin = 1e9;
 
-                for(int k=0;k<(int)objects.size();k++)
-                {
-                    t = objects[k]->intersect(reflectionRay,color, 0);
-                    if(t> 0 && t<tMin)
-                        tMin = t , nearestObjectIndex = k;
-                }
+            //     for(int k=0;k<(int)objects.size();k++)
+            //     {
+            //         t = objects[k]->intersect(reflectionRay,color, 0);
+            //         if(t> 0 && t<tMin)
+            //             tMin = t , nearestObjectIndex = k;
+            //     }
 
-                if(nearestObjectIndex != -1)
-                {
-                    // cout<<"Object "<<nearestObjectIndex<<" intersected"<<endl;
+            //     if(nearestObjectIndex != -1)
+            //     {
+            //         // cout<<"Object "<<nearestObjectIndex<<" intersected"<<endl;
 
-                    Color colorTemp(0,0,0);
-                    // cout<<"Before Color "<<color.r<<" "<<color.g<<" "<<color.b<<endl;
-                    double t = objects[nearestObjectIndex]->intersect(reflectionRay,colorTemp, level+1);
+            //         Color colorTemp(0,0,0);
+            //         // cout<<"Before Color "<<color.r<<" "<<color.g<<" "<<color.b<<endl;
+            //         double t = objects[nearestObjectIndex]->intersect(reflectionRay,colorTemp, level+1);
                     
-                    color.r += colorTemp.r * coefficients[3];
-                    color.g += colorTemp.g * coefficients[3];
-                    color.b += colorTemp.b * coefficients[3];
+            //         color.r += colorTemp.r * coefficients[3];
+            //         color.g += colorTemp.g * coefficients[3];
+            //         color.b += colorTemp.b * coefficients[3];
 
-                }
+            //     }
                 
                 
-                // PT reflection = lightDirection - 2*(lightDirection*normal)*normal;
-                // reflection.normalize();
-                // double diffuse = max(0.0, lightDirection*normal);
-                // double specular = pow(max(0.0, reflection*ray.dir), shine);
-                // color.r += colorAtIntersection.r * coefficients[1] * diffuse + colorAtIntersection.r * coefficients[2] * specular;
-                // color.g += colorAtIntersection.g * coefficients[1] * diffuse + colorAtIntersection.g * coefficients[2] * specular;
-                // color.b += colorAtIntersection.b * coefficients[1] * diffuse + colorAtIntersection.b * coefficients[2] * specular;
-            }
+            //     // PT reflection = lightDirection - 2*(lightDirection*normal)*normal;
+            //     // reflection.normalize();
+            //     // double diffuse = max(0.0, lightDirection*normal);
+            //     // double specular = pow(max(0.0, reflection*ray.dir), shine);
+            //     // color.r += colorAtIntersection.r * coefficients[1] * diffuse + colorAtIntersection.r * coefficients[2] * specular;
+            //     // color.g += colorAtIntersection.g * coefficients[1] * diffuse + colorAtIntersection.g * coefficients[2] * specular;
+            //     // color.b += colorAtIntersection.b * coefficients[1] * diffuse + colorAtIntersection.b * coefficients[2] * specular;
+            // }
 
             return t;
         }
@@ -649,6 +647,7 @@ struct Floor : public Object{
 
 		if (((tileX + tileY) % 2) == 0)
 		{
+            // cout<<"White"<<endl;
 			return Color(1,1,1);
 		}
 		else
