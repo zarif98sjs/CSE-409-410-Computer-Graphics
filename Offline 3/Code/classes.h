@@ -1,8 +1,11 @@
 #include<bits/stdc++.h>
+#include "bitmap_image.hpp"
 #include <GL/glut.h>
 using namespace std;
 
 #define pi (2*acos(0.0))
+
+extern bitmap_image image;
 
 struct PT
 {
@@ -26,7 +29,7 @@ struct PT
 	PT operator /(double b)  {return PT(x/b,y/b, z/b);}
 	double operator *(PT b)  {return x*b.x+y*b.y+z*b.z;} // DOT PRODUCT
 	PT operator ^(PT b)  {return PT(y*b.z-z*b.y, z*b.x-x*b.z, x*b.y-y*b.x);} // CROSS PRODUCT
-
+    PT operator -()  {return PT(-x,-y,-z);}
     /** functions  **/
 
     double length() {return sqrt(x*x+y*y+z*z);}
@@ -66,6 +69,8 @@ struct Color{
     {
         r = g = b = 0.0;
     }
+
+    Color(double r, double g, double b) : r(r), g(g), b(b) {}
 };
 
 struct Light{
@@ -109,6 +114,10 @@ struct Ray{
     }
 };
 
+class Object;
+
+extern vector <Light*> lights;
+extern vector <Object*> objects;
 
 class Object {
 public:
@@ -125,17 +134,97 @@ public:
 		void setColor(Color color){
             this->color = color;
         }
-		
+
+        virtual Color getColorAt(PT point){
+            return Color(this->color.r, this->color.g, this->color.b);
+        }
+    	
 		void setShine(int shine){
             this->shine = shine;
         }
 
 		void setCoefficients(vector<double> coefficients){
             this->coefficients = coefficients;
-        }
+        }   
 
         virtual void draw() = 0;
-		virtual double intersect(Ray ray, Color &color, int level) = 0;
+		virtual double intersectHelper(Ray ray, Color &color, int level) = 0;
+        virtual Ray getNormal(PT point, Ray incidentRay) = 0;
+		virtual double intersect(Ray ray, Color &color, int level)
+        {
+            double t = intersectHelper(ray, color, level);
+
+            if(t < 0) return -1;
+            if(level == 0) return t;
+
+            PT intersectionPoint = ray.origin + ray.dir*t;
+            Color colorAtIntersection = getColorAt(intersectionPoint);
+
+            // update ambience
+            color.r = colorAtIntersection.r * coefficients[0];
+            color.g = colorAtIntersection.g * coefficients[0];
+            color.b = colorAtIntersection.b * coefficients[0];
+
+            // cout<< " Lights size " << lights.size() << endl;
+
+            for(int i = 0; i < lights.size(); i++){
+                PT lightPosition = lights[i]->pos;
+                PT lightDirection = intersectionPoint - lightPosition;
+                lightDirection.normalize();
+                
+                Ray lightRay = Ray(lightPosition, lightDirection);
+                Ray normal = getNormal(intersectionPoint,lightRay);
+                
+                Ray reflection = Ray(intersectionPoint, lightRay.dir - normal.dir*2*(lightRay.dir*normal.dir));
+
+                double t2 = (intersectionPoint - lightPosition).length();
+                if(t2 < 1e-5) continue;
+
+                bool obscured = false;
+
+                for(Object *obj : objects){
+                    double t3 = obj->intersectHelper(lightRay, color, level);
+                    if(t3 > 0 && t3 + 1e-5 < t2){
+                        obscured = true;
+                        break;
+                    }
+                }
+
+                if(!obscured){
+
+                    double phong = max(0.0,-ray.dir*reflection.dir);
+                    double val = max(0.0, -lightRay.dir*normal.dir);
+
+                    color.r += lights[i]->color.r * coefficients[1] * val * colorAtIntersection.r;
+                    color.r += lights[i]->color.r * coefficients[2] * pow(phong,shine);
+
+                    color.g += lights[i]->color.g * coefficients[1] * val * colorAtIntersection.g;
+                    color.g += lights[i]->color.g * coefficients[2] * pow(phong,shine);
+
+                    color.b += lights[i]->color.b * coefficients[1] * val * colorAtIntersection.b;
+                    color.b += lights[i]->color.b * coefficients[2] * pow(phong,shine);
+                
+                }
+
+                // if(!obscured){
+                //     double diffuse = max(0.0, lightDirection*normal.dir);
+                //     double specular = pow(max(0.0, -reflection.dir*lightDirection), shine);
+                //     color.r += colorAtIntersection.r * coefficients[1] * diffuse + colorAtIntersection.r * coefficients[2] * specular;
+                //     color.g += colorAtIntersection.g * coefficients[1] * diffuse + colorAtIntersection.g * coefficients[2] * specular;
+                //     color.b += colorAtIntersection.b * coefficients[1] * diffuse + colorAtIntersection.b * coefficients[2] * specular;
+                // }
+                
+                // PT reflection = lightDirection - 2*(lightDirection*normal)*normal;
+                // reflection.normalize();
+                // double diffuse = max(0.0, lightDirection*normal);
+                // double specular = pow(max(0.0, reflection*ray.dir), shine);
+                // color.r += colorAtIntersection.r * coefficients[1] * diffuse + colorAtIntersection.r * coefficients[2] * specular;
+                // color.g += colorAtIntersection.g * coefficients[1] * diffuse + colorAtIntersection.g * coefficients[2] * specular;
+                // color.b += colorAtIntersection.b * coefficients[1] * diffuse + colorAtIntersection.b * coefficients[2] * specular;
+            }
+
+            return t;
+        }
 
         // destructor
         virtual ~Object(){}
@@ -164,6 +253,19 @@ struct Triangle: public Object
         this->c = c;
     }
 
+    virtual Ray getNormal(PT point, Ray incidentRay)
+    {
+        PT normal = (b-a)^(c-a);
+        normal.normalize();
+        
+        if(incidentRay.dir*normal < 0){
+            return Ray(point, -normal);
+        }
+        else{
+            return Ray(point, normal);
+        }
+    }
+
     virtual void draw(){
         glColor3f(color.r, color.g, color.b);
         glBegin(GL_TRIANGLES);
@@ -175,7 +277,7 @@ struct Triangle: public Object
         glEnd();
     }
 
-    virtual double intersect(Ray ray, Color &color, int level){
+    virtual double intersectHelper(Ray ray, Color &color, int level){
 
         double betaMat[3][3] = {
 				{a.x - ray.origin.x, a.x - c.x, ray.dir.x},
@@ -232,6 +334,10 @@ struct Sphere : public Object{
 			length = radius;
 		}
 
+        virtual Ray getNormal(PT point, Ray incidentRay){
+            return Ray(point, point - reference_point);
+        }
+
 		virtual void draw(){
             int stacks = 30;
 			int slices = 20;
@@ -278,7 +384,7 @@ struct Sphere : public Object{
 			}
 		}
 
-        virtual double intersect(Ray ray, Color &color, int level){
+        virtual double intersectHelper(Ray ray, Color &color, int level){
 
             ray.origin = ray.origin - reference_point; // adjust ray origin
             
@@ -307,8 +413,11 @@ struct Sphere : public Object{
                 }
             }
 
-            if(level == 0) return t;
-            else return t;
+            return t;
+            // if(level == 0) return t;
+            
+            // PT intersectionPoint = ray.origin + ray.dir * t;
+            // PT normal = intersectionPoint - reference_point;
         }
 
         // input stream
@@ -335,6 +444,28 @@ struct Floor : public Object{
         length = tileWidth;
     }
 
+    virtual Color getColorAt(PT point){
+
+        int tileX = (point.x - reference_point.x) / length;
+		int tileY = (point.y - reference_point.y) / length;
+
+		if (((tileX + tileY) % 2) == 0)
+		{
+            // cout<<"White"<<endl;
+			return Color(1,1,1);
+		}
+		else
+		{
+            // cout<<"Black"<<endl;
+			return Color(0,0,0);
+		}
+    }
+
+    virtual Ray getNormal(PT point, Ray incidentRay){
+        if(incidentRay.dir.z > 0) return Ray(point, PT(0, 0, 1));
+        else return Ray(point, PT(0, 0, -1));
+    }
+
     virtual void draw(){
         for (int i = 0; i < tiles; i++)
 		{
@@ -355,9 +486,13 @@ struct Floor : public Object{
 		}
     }
 
-    virtual double intersect(Ray ray, Color &color, int level){
+    virtual double intersectHelper(Ray ray, Color &color, int level){
         PT normal = PT(0, 0, 1);
         double dotP = normal * ray.dir;
+        
+        if (round(dotP * 100) == 0)
+			return -1;
+
         double t = -(normal * ray.origin) / dotP;
 
         PT p = ray.origin + ray.dir * t;

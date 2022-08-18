@@ -131,8 +131,12 @@ void capture()
 			}
 			if(nearestObjectIndex != -1)
 			{
-				double t = objects[nearestObjectIndex]->intersect(ray,color, recursionLevel);
+				// cout<<"Object "<<nearestObjectIndex<<" intersected"<<endl;
+
 				color = objects[nearestObjectIndex]->color;
+				// cout<<"Before Color "<<color.r<<" "<<color.g<<" "<<color.b<<endl;
+				double t = objects[nearestObjectIndex]->intersect(ray,color, recursionLevel);
+				// cout<<"After Color "<<color.r<<" "<<color.g<<" "<<color.b<<endl;
 				image.set_pixel(i, j, 255*color.r, 255*color.g, 255*color.b);
 
 			}
@@ -345,6 +349,9 @@ void loadData()
 
 	Object *floor;
 	floor = new Floor(400, 10);
+	floor->setColor(Color(0.5, 0.5, 0.5));
+	vector <double> coefficients = {0.2, 0.2, 0.2, 0.2};
+	floor->setCoefficients(coefficients);
 	objects.push_back(floor);
 }
 
