@@ -118,6 +118,7 @@ class Object;
 
 extern vector <Light*> lights;
 extern vector <Object*> objects;
+extern int recursionLevel;
 
 class Object {
 public:
@@ -183,7 +184,7 @@ public:
                 bool obscured = false;
 
                 for(Object *obj : objects){
-                    double t3 = obj->intersectHelper(lightRay, color, level);
+                    double t3 = obj->intersectHelper(lightRay, color, 0);
                     if(t3 > 0 && t3 + 1e-5 < t2){
                         obscured = true;
                         break;
@@ -196,23 +197,47 @@ public:
                     double val = max(0.0, -lightRay.dir*normal.dir);
 
                     color.r += lights[i]->color.r * coefficients[1] * val * colorAtIntersection.r;
-                    color.r += lights[i]->color.r * coefficients[2] * pow(phong,shine);
+                    color.r += lights[i]->color.r * coefficients[2] * pow(phong,shine) * colorAtIntersection.r;
 
                     color.g += lights[i]->color.g * coefficients[1] * val * colorAtIntersection.g;
-                    color.g += lights[i]->color.g * coefficients[2] * pow(phong,shine);
+                    color.g += lights[i]->color.g * coefficients[2] * pow(phong,shine) * colorAtIntersection.g;
 
                     color.b += lights[i]->color.b * coefficients[1] * val * colorAtIntersection.b;
-                    color.b += lights[i]->color.b * coefficients[2] * pow(phong,shine);
-                
+                    color.b += lights[i]->color.b * coefficients[2] * pow(phong,shine) * colorAtIntersection.b;
+
+                }
+            }
+
+            if(level < recursionLevel){
+                // if(level > 1) cout << "Recursion level " << level << endl;
+                Ray normal = getNormal(intersectionPoint,ray);
+                Ray reflectionRay = Ray(intersectionPoint, ray.dir - normal.dir*2*(ray.dir*normal.dir));
+                reflectionRay.origin = reflectionRay.origin + reflectionRay.dir*1e-5;
+
+                int nearestObjectIndex = -1;
+                double t = -1,tMin = 1e9;
+
+                for(int k=0;k<(int)objects.size();k++)
+                {
+                    t = objects[k]->intersect(reflectionRay,color, 0);
+                    if(t> 0 && t<tMin)
+                        tMin = t , nearestObjectIndex = k;
                 }
 
-                // if(!obscured){
-                //     double diffuse = max(0.0, lightDirection*normal.dir);
-                //     double specular = pow(max(0.0, -reflection.dir*lightDirection), shine);
-                //     color.r += colorAtIntersection.r * coefficients[1] * diffuse + colorAtIntersection.r * coefficients[2] * specular;
-                //     color.g += colorAtIntersection.g * coefficients[1] * diffuse + colorAtIntersection.g * coefficients[2] * specular;
-                //     color.b += colorAtIntersection.b * coefficients[1] * diffuse + colorAtIntersection.b * coefficients[2] * specular;
-                // }
+                if(nearestObjectIndex != -1)
+                {
+                    // cout<<"Object "<<nearestObjectIndex<<" intersected"<<endl;
+
+                    Color colorTemp(0,0,0);
+                    // cout<<"Before Color "<<color.r<<" "<<color.g<<" "<<color.b<<endl;
+                    double t = objects[nearestObjectIndex]->intersect(reflectionRay,colorTemp, level+1);
+                    
+                    color.r += colorTemp.r * coefficients[3];
+                    color.g += colorTemp.g * coefficients[3];
+                    color.b += colorTemp.b * coefficients[3];
+
+                }
+                
                 
                 // PT reflection = lightDirection - 2*(lightDirection*normal)*normal;
                 // reflection.normalize();
@@ -228,6 +253,100 @@ public:
 
         // destructor
         virtual ~Object(){}
+};
+
+struct General : public Object{
+    double A,B,C,D,E,F,G,H,I,J;
+
+    General(){
+
+    }
+
+    virtual void draw(){
+        return;
+    }
+
+    virtual Ray getNormal(PT point, Ray incidentRay)
+    {
+        PT dir(2*A*point.x + D*point.y + E*point.z + G,
+               2*B*point.y + D*point.x + F*point.z + H,
+               2*C*point.z + E*point.x + F*point.y + I);
+
+        return Ray(point, dir);
+    }
+
+    bool ok(PT point)
+    {
+        if(fabs(length) > 1e-5){
+            if(point.x < reference_point.x) return false;
+            if(point.x > reference_point.x + length) return false;
+        }
+        
+
+        if(fabs(width) > 1e-5){
+            if(point.y < reference_point.y) return false;
+            if(point.y > reference_point.y + width) return false;
+        }
+        
+
+        if(fabs(height) > 1e-5){
+            if(point.z < reference_point.z) return false;
+            if(point.z > reference_point.z + height) return false;
+        }
+    
+        return true;
+    }
+
+
+    virtual double intersectHelper(Ray ray, Color &color, int level){
+
+        double X0 = ray.origin.x;
+        double Y0 = ray.origin.y;
+        double Z0 = ray.origin.z;
+        double X1 = ray.dir.x;
+        double Y1 = ray.dir.y;
+        double Z1 = ray.dir.z;
+
+        double C0 = A*X1*X1 + B*Y1*Y1 + C*Z1*Z1 + D*X1*Y1 + E*X1*Z1 + F*Y1*Z1;
+        double C1 = 2*A*X0*X1 + 2*B*Y0*Y1 + 2*C*Z0*Z1 + D*(X0*Y1 + X1*Y0) + E*(X0*Z1 + X1*Z0) + F*(Y0*Z1 + Y1*Z0) + G*X1 + H*Y1 + I*Z1;
+        double C2 = A*X0*X0 + B*Y0*Y0 + C*Z0*Z0 + D*X0*Y0 + E*X0*Z0 + F*Y0*Z0 + G*X0 + H*Y0 + I*Z0 + J;
+
+        double discriminant = C1*C1 - 4*C0*C2;
+        if(discriminant < 0) return -1;
+        double t1 = (-C1 - sqrt(discriminant))/(2*C0);
+        double t2 = (-C1 + sqrt(discriminant))/(2*C0);
+
+        if(t1 < 0 && t2 < 0) return -1;
+
+        if(t1 > 0) {
+            PT intersectionPoint = ray.origin + ray.dir*t1;
+            if(ok(intersectionPoint)){
+                return t1;
+            }
+        }
+        if(t2 > 0) {
+            PT intersectionPoint = ray.origin + ray.dir*t2;
+            if(ok(intersectionPoint)){
+                return t2;
+            }
+        }
+
+        return -1;
+
+    }
+    
+    // input stream
+    friend istream& operator>>(istream &in, General &g)
+    {
+        in >> g.A >> g.B >> g.C >> g.D >> g.E >> g.F >> g.G >> g.H >> g.I >> g.J;
+        in >> g.reference_point >> g.length >> g.width >> g.height;
+
+        in >> g.color.r >> g.color.g >> g.color.b; // color
+        for(int i = 0; i < 4; i++) in >> g.coefficients[i];
+        in >> g.shine;
+        return in;
+    }
+
 };
 
 double determinant(double ara[3][3]){
@@ -448,6 +567,10 @@ struct Floor : public Object{
 
         int tileX = (point.x - reference_point.x) / length;
 		int tileY = (point.y - reference_point.y) / length;
+
+        if(tileX<0 || tileX>tiles || tileY<0 || tileY>tiles){
+            return Color(0,0,0);
+        }
 
 		if (((tileX + tileY) % 2) == 0)
 		{

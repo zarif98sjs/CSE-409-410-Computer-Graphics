@@ -125,7 +125,7 @@ void capture()
 			nearestObjectIndex = -1;
 			for(int k=0;k<(int)objects.size();k++)
 			{
-				t = objects[k]->intersect(ray,color, recursionLevel);
+				t = objects[k]->intersect(ray,color, 0);
 				if(t>0 && t<tMin)
 					tMin = t , nearestObjectIndex = k;
 			}
@@ -133,9 +133,18 @@ void capture()
 			{
 				// cout<<"Object "<<nearestObjectIndex<<" intersected"<<endl;
 
-				color = objects[nearestObjectIndex]->color;
+				// color = objects[nearestObjectIndex]->color;
+				color = Color(0,0,0);
 				// cout<<"Before Color "<<color.r<<" "<<color.g<<" "<<color.b<<endl;
-				double t = objects[nearestObjectIndex]->intersect(ray,color, recursionLevel);
+				double t = objects[nearestObjectIndex]->intersect(ray,color, 1);
+
+				if(color.r > 1) color.r = 1;
+				if(color.g > 1) color.g = 1;
+				if(color.b > 1) color.b = 1;
+
+				if(color.r < 0) color.r = 0;
+				if(color.g < 0) color.g = 0;
+				if(color.b < 0) color.b = 0;
 				// cout<<"After Color "<<color.r<<" "<<color.g<<" "<<color.b<<endl;
 				image.set_pixel(i, j, 255*color.r, 255*color.g, 255*color.b);
 
@@ -331,6 +340,8 @@ void loadData()
 		}
 		else if(objType == "general"){
 			// obj = new Plane();
+			obj = new General();
+			in >> *((General *)obj);
 		}
 		else{
 			cout<<objType<<" is not a valid object type"<<endl;
@@ -350,7 +361,8 @@ void loadData()
 	Object *floor;
 	floor = new Floor(400, 10);
 	floor->setColor(Color(0.5, 0.5, 0.5));
-	vector <double> coefficients = {0.2, 0.2, 0.2, 0.2};
+	vector <double> coefficients = {1, 1, 1, 1};
+	// vector <double> coefficients = {0.2, 0.2, 0.2, 0.2};
 	floor->setCoefficients(coefficients);
 	objects.push_back(floor);
 }
