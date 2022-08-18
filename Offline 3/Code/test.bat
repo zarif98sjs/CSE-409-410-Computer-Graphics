@@ -22,3 +22,9 @@ gcc -c -o %1.o %1.cpp -I\"D:\CodeBlocks\MinGW\x86_64-w64-mingw32\include"
 cls
 echo "App Running"
 %1.exe
+
+@REM gcc -c -o main.o main.cpp -I\"D:\CodeBlocks\MinGW\x86_64-w64-mingw32\include"
+@REM gcc -o main.exe  main.o -L\"D:\CodeBlocks\MinGW\x86_64-w64-mingw32\lib -lopengl32 -lglu32 -lfreeglut"
+
+@REM g++ -c -o main.o main.cpp -I\"D:\CodeBlocks\MinGW\x86_64-w64-mingw32\include"
+@REM g++ -o main.exe  main.o -L\"D:\CodeBlocks\MinGW\x86_64-w64-mingw32\lib -lopengl32 -lglu32 -lfreeglut"

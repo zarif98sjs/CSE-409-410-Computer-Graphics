@@ -2,6 +2,7 @@
 #include <GL/glut.h>
 using namespace std;
 #include "classes.h"
+#include "bitmap_image.hpp"
 #include <windows.h>
 #define pi (2*acos(0.0))
 
@@ -11,6 +12,9 @@ int drawgrid;
 int drawaxes;
 double angle;
 
+int recursionLevel;
+int imageHeight,imageWidth;
+bitmap_image image;
 
 vector <Object*> objects;
 vector <Light*> lights;
@@ -81,9 +85,69 @@ void rotate3D(PT &vec,PT &axis,double ang)
 	vec = vec*cos(ang)+(axis^vec)*sin(ang);
 }
 
+double windowWidth = 500, windowHeight = 500;
+double viewAngle = 80;
+
+
+void capture()
+{
+	cout<<"Capturing Image"<<endl;
+
+	for(int i=0;i<imageWidth;i++)
+		for(int j=0;j<imageHeight;j++)
+			image.set_pixel(i, j, 0, 0, 0);
+	
+	image.save_image("black.bmp");
+
+	double planeDistance = (windowHeight / 2.0) / tan((pi * viewAngle) / (360.0));
+
+	PT topLeft = pos + (look * planeDistance) + (up * (windowHeight / 2.0)) - (rightV * (windowWidth / 2.0));
+
+	double du = windowWidth / (imageWidth*1.0);
+	double dv = windowHeight / (imageHeight*1.0);
+
+	// Choose middle of the grid cell
+	topLeft = topLeft + (rightV * du / 2.0) - (up * dv / 2.0);
+
+	int nearestObjectIndex = -1;
+	double t,tMin;
+
+	for(int i=0;i<imageWidth;i++)
+	{
+		for(int j=0;j<imageHeight;j++)
+		{
+			PT pixel = topLeft + (rightV * du * i) - (up * dv * j);
+
+			Ray ray(pos,pixel-pos);
+			Color color;
+
+			tMin = 1e9;
+			nearestObjectIndex = -1;
+			for(int k=0;k<(int)objects.size();k++)
+			{
+				t = objects[k]->intersect(ray,color, recursionLevel);
+				if(t>0 && t<tMin)
+					tMin = t , nearestObjectIndex = k;
+			}
+			if(nearestObjectIndex != -1)
+			{
+				double t = objects[nearestObjectIndex]->intersect(ray,color, recursionLevel);
+				color = objects[nearestObjectIndex]->color;
+				image.set_pixel(i, j, 255*color.r, 255*color.g, 255*color.b);
+
+			}
+		}
+	}
+
+	image.save_image("out.bmp");
+	cout<<"Saving Image"<<endl;		
+}
+
 void keyboardListener(unsigned char key, int x,int y){
 	switch(key){
-
+		case '0':
+			capture();
+			break;
 		case '1':
 			// rotate LEFT 
 			rotate3D(rightV,up,ROT_ANG);
@@ -235,11 +299,13 @@ void animate(){
 	//codes for any changes in Models, Camera
 	glutPostRedisplay();
 }
-int recursionLevel,imageHeight;
+
 void loadData()
 {
 	ifstream in("scene.txt");
 	in >> recursionLevel >> imageHeight;
+
+	imageWidth = imageHeight;
 
 	int objCount;
 	in >> objCount;
@@ -314,6 +380,7 @@ void init(){
 int main(int argc, char **argv){
 
 	loadData();
+	image = bitmap_image(imageWidth, imageHeight);
 	glutInit(&argc,argv);
 	glutInitWindowSize(500, 500);
 	glutInitWindowPosition(0, 0);

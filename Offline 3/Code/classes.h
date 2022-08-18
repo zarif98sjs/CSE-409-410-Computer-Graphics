@@ -135,7 +135,7 @@ public:
         }
 
         virtual void draw() = 0;
-		virtual double intersect(Ray ray, Color color, int level) = 0;
+		virtual double intersect(Ray ray, Color &color, int level) = 0;
 
         // destructor
         virtual ~Object(){}
@@ -175,7 +175,7 @@ struct Triangle: public Object
         glEnd();
     }
 
-    virtual double intersect(Ray ray, Color color, int level){
+    virtual double intersect(Ray ray, Color &color, int level){
 
         double betaMat[3][3] = {
 				{a.x - ray.origin.x, a.x - c.x, ray.dir.x},
@@ -278,7 +278,7 @@ struct Sphere : public Object{
 			}
 		}
 
-        virtual double intersect(Ray ray, Color color, int level){
+        virtual double intersect(Ray ray, Color &color, int level){
 
             ray.origin = ray.origin - reference_point; // adjust ray origin
             
@@ -286,23 +286,29 @@ struct Sphere : public Object{
             double b = 2 * (ray.dir*ray.origin);
             double c = (ray.origin*ray.origin) - (length*length);
 
+            
+
             double discriminant = pow(b, 2) - 4 * a * c;
+            double t = -1;
             if (discriminant < 0){
-                return -1;
+                t = -1;
             }
             else{
                 double t1 = (-b - sqrt(discriminant)) / (2 * a);
                 double t2 = (-b + sqrt(discriminant)) / (2 * a);
                 if (t1 > 0){
-                    return t1;
+                    t = t1;
                 }
                 else if (t2 > 0){
-                    return t2;
+                    t = t2;
                 }
                 else{
-                    return -1;
+                    t = -1;
                 }
             }
+
+            if(level == 0) return t;
+            else return t;
         }
 
         // input stream
@@ -349,7 +355,7 @@ struct Floor : public Object{
 		}
     }
 
-    virtual double intersect(Ray ray, Color color, int level){
+    virtual double intersect(Ray ray, Color &color, int level){
         PT normal = PT(0, 0, 1);
         double dotP = normal * ray.dir;
         double t = -(normal * ray.origin) / dotP;
