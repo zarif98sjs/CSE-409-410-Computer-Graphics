@@ -270,7 +270,7 @@ public:
                 double dot = lightDirection*spotlights[i]->dir;
                 double angle = acos(dot/(lightDirection.length()*spotlights[i]->dir.length())) * (180.0/pi);
 
-                if(angle<spotlights[i]->cutoffAngle){
+                if(fabs(angle)<spotlights[i]->cutoffAngle){
 
                     Ray lightRay = Ray(lightPosition, lightDirection);
                     Ray normal = getNormal(intersectionPoint,lightRay);
