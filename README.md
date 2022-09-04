@@ -51,6 +51,15 @@
 
     ![](Offline%203/Code/images/rt-2.bmp)
 
+    &nbsp;
+
+    ![](Offline%203/Code/Output_11.bmp)
+
+    &nbsp;
+
+    ![](Offline%203/Code/Output_13.bmp)
+
+
  - ## **`Open GL Online`**
 
     **Online 1**
@@ -72,7 +81,7 @@
     ![](Bonus%20Assignment/Code/2_RUA.bmp)
     
     &nbsp;
-    
+
     ![](Bonus%20Assignment/Code/3_RWA.bmp)
 
 
