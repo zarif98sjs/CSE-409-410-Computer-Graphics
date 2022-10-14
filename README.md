@@ -128,28 +128,4 @@ And for the sessional, we have
     - [Problem Statement](Online%201/ONLINE/Readme.txt)
     - [Solution](Online%201/ONLINE/)
 
- - ## **`Mid Point Line Alogorithm, Unweighted and Weighted Anti Aliasing`**
-
-    **Bonus Assignment - CSE 409**
-    - [Problem Statement](Bonus%20Assignment/Problem%20Statement.pdf)
-    - [Solution](Bonus%20Assignment/Code/)
-
-    &nbsp;
-
-    ![](Bonus%20Assignment/Code/1_R.bmp)
-    
-    &nbsp;
-    
-    ![](Bonus%20Assignment/Code/2_RUA.bmp)
-    
-    &nbsp;
-
-    ![](Bonus%20Assignment/Code/3_RWA.bmp)
-
-- ## **`Open GL Online`**
-
-    **Online 1**
-    - [Problem Statement](Online%201/ONLINE/Readme.txt)
-    - [Solution](Online%201/ONLINE/)
-
-
+ 
