@@ -1,5 +1,67 @@
-# CSE-410 `Computer-Graphics-Sessional`
+# **CSE-409 & CSE-410 `Computer-Graphics`**
 
+This repositoy contains implementation of various algorithms in ***Computer Graphics*** both for *Theory* and *Sessional*.
+
+Implementations of theoretical algorithms include the following:
+   - **Cohen Sutherland** Line Clipping Algorithm
+   - **Cyrus Beck** Line Clipping Algorithm
+   - **Sutherland Hodgeman** Polygon Clipping Algorithm
+   - **Bresenham**'s Line Drawing Algorithm
+   - **Unweighted Anti-Aliasing**
+   - **Weighted Anti-Aliasing**
+   - **Koch Curve** Fractal
+   - **Koch Snowflake** Fractal
+   - **Dragon Curve** Fractal
+
+And for the sessional, we have 
+- **Open GL** basics
+- **Raster based Graphics Pipeline** ({Model,View,Projection} Transformation + Z-Buffer Hidden Surface Removal Algorithm
+- **Ray Tracing**
+
+# **Theory (CSE - 409)**
+
+ - ## **`Mid Point Line Alogorithm, Unweighted and Weighted Anti Aliasing`**
+
+    **Bonus Assignment - CSE 409**
+    - [Problem Statement](Bonus%20Assignment/Problem%20Statement.pdf)
+    - [Solution](Bonus%20Assignment/Code/)
+
+    &nbsp;
+
+    ![](Bonus%20Assignment/Code/1_R.bmp)
+    
+    &nbsp;
+    
+    ![](Bonus%20Assignment/Code/2_RUA.bmp)
+    
+    &nbsp;
+
+    ![](Bonus%20Assignment/Code/3_RWA.bmp)
+
+ - ## **`Clipping`**
+
+    **Extra Stuff**
+    - [Cohen Sutherland Line Clipping Algorithm](/Clipping/cohen_sutherland.cpp)
+    - [Cyrus Beck Line Clipping Algorithm](/Clipping/cyrus_beck.cpp)
+    - [Sutherland Hodgeman Polygon Clipping Algorithm](/Clipping/sutherland_hodgman.cpp)
+
+
+ - ## **`Fractal`**
+
+    **Extra Stuff**
+    - [Koch Curve](Fractal/koch_curve.py)
+      
+      ![](/Fractal/koch_curve.png)
+  
+    - [Koch Snowflake](Fractal/koch_snowflake.py)
+   
+      ![](/Fractal/koch_snowflake.png)
+
+    - [Dragon Curve](Fractal/dragon_curve.py)
+
+      ![](/Fractal/dragon_curve.png)
+
+# **Sessional (CSE - 410)**
 - ## **`Open GL`**
 
     **Offline 1**
@@ -14,7 +76,7 @@
 
     ![](Offline%201/Code/demo_2.gif)
  
-- ## **`Raster based Graphics Pipeline`**
+- ## **`Raster based Graphics Pipeline ({Model,View,Projection} Transformation + Z-Buffer Hidden Surface Removal Algorithm)`**
 
     **Offline 2**
     - [Problem Statement](Offline%202/Problem%20Statement%20-%20Raster%20Based%20Graphics%20Pipeline.pdf)
@@ -84,10 +146,10 @@
 
     ![](Bonus%20Assignment/Code/3_RWA.bmp)
 
+- ## **`Open GL Online`**
 
- - ## **`Clipping`**
+    **Online 1**
+    - [Problem Statement](Online%201/ONLINE/Readme.txt)
+    - [Solution](Online%201/ONLINE/)
 
-    **Extra Stuff**
-    - [Cohen Sutherland Line Clipping Algorithm](/Clipping/cohen_sutherland.cpp)
-    - [Cyrus Beck Line Clipping Algorithm](/Clipping/cyrus_beck.cpp)
-    - [Sutherland Hodgeman Polygon Clipping Algorithm](/Clipping/sutherland_hodgman.cpp)
+
