@@ -85,3 +85,9 @@
     ![](Bonus%20Assignment/Code/3_RWA.bmp)
 
 
+ - ## **`Clipping`**
+
+    **Extra Stuff**
+    - [Cohen Sutherland Line Clipping Algorithm](/Clipping/cohen_sutherland.cpp)
+    - [Cyrus Beck Line Clipping Algorithm](/Clipping/cyrus_beck.cpp)
+    - [Sutherland Hodgeman Polygon Clipping Algorithm](/Clipping/sutherland_hodgman.cpp)
