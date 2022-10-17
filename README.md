@@ -1,6 +1,14 @@
 # **CSE-409 & CSE-410 `Computer-Graphics`**
 
-This repositoy contains implementation of various algorithms in ***Computer Graphics*** both for *Theory* and *Sessional*.
+This repositoy contains implementation of various algorithms in ***Computer Graphics*** both for *Theory* and *Sessional* course offered in ***Department of Computer Science and Engineering*** at ***Bangladesh University of Engineering and Technology (BUET)***.
+
+---
+
+### ***Disclaimer***
+
+*The repository serves as an archive for the author's solutions to the course assignments and sometimes extra implementations of algorithms and techniques taught in the theory course. The solutions are **not guaranteed to be full-proof**. The author is not responsible for **any damage** caused by the use of the solutions. While it can serve as a **reference**, it is strongly discouraged to copy the solutions for **academic dishonesty**, and the author is not responsible for any consequences of such actions. The Hall of Shame ain't so forgiving!*
+
+---
 
 Implementations of theoretical algorithms include the following:
    - **Cohen Sutherland** Line Clipping Algorithm
